@@ -1,28 +1,56 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   Platform,
-  ScrollView,
-  FlatList
+  FlatList, 
 } from "react-native";
 
 import { Button } from "../components/Button";
 import { SkillCard } from "../components/SkillCard";
 
+interface IMySkill {
+  id: string; 
+  name: string;
+}
+
 export function Home() {
-  const [newSkill, setNewSkill] = useState("");
-  const [mySkills, setMySkills] = useState([]);
+  const [newSkill, setNewSkill] = useState<string>("");
+  const [mySkills, setMySkills] = useState<IMySkill[]>([]);
+  const [gretting, setGretting] = useState<string>(''); 
 
   function handleAddSkill() {
-    setMySkills((oldState) => [...oldState, newSkill]);
+    const data = {
+      id: String(new Date().getTime()), 
+      name: newSkill,
+    }
+
+    setMySkills((oldState) => [...oldState, data]);
   }
+
+  function removeSkill(id: string) {
+    setMySkills(oldState => oldState.filter( skill => skill.id !== id)); 
+  }
+
+  useEffect(() => {
+    const currentHour = new Date().getHours(); 
+
+    if(currentHour < 12) {
+      setGretting('Good Morning'); 
+    } else if( currentHour >= 12 && currentHour < 18){
+      setGretting('Good Afternoon'); 
+    } else {
+      setGretting('Good Evening');
+    }
+  }, [mySkills]); 
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome, Vitor</Text>
+
+      <Text style={styles.greetings}>{gretting}</Text>
 
       <TextInput
         style={styles.input}
@@ -31,15 +59,18 @@ export function Home() {
         onChangeText={setNewSkill}
       />
 
-      <Button onPress={handleAddSkill} />
+      <Button onPress={handleAddSkill} title='Add' />
 
       <Text style={[styles.title, { marginVertical: 40 }]}>My Skills</Text>
 
       <FlatList 
         data={mySkills}
-        keyExtractor={(item, index) => index}
+        keyExtractor={(item, index) => item.id}
         renderItem={( {item} ) => (
-          <SkillCard skill={item} />
+          <SkillCard 
+            skill={item.name} 
+            onPress={() => removeSkill(item.id)}
+          />
         )}
       />
 
@@ -53,7 +84,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#121025",
     paddingHorizontal: 20,
     paddingVertical: 70,
-    paddingHorizontal: 30,
   },
   title: {
     color: "#fff",
@@ -80,4 +110,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
+  greetings: {
+    color: '#FFFFFF',
+  }
 });
